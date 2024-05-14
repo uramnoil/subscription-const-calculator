@@ -20,8 +20,8 @@ export default function Calculator() {
         {allServices.map((service) => (
           <div>
             <h2>{service.name}</h2>
-            <ul>
-              <fieldset>
+            <fieldset>
+              <ul>
                 <li>
                   <input
                     type={"radio"}
@@ -44,8 +44,8 @@ export default function Calculator() {
                     <label>{plan.name} - ¥{plan.price}</label>
                   </li>
                 ))}
-              </fieldset>
-            </ul>
+              </ul>
+            </fieldset>
           </div>
         ))}
       </form>
