@@ -15,13 +15,13 @@ export default function Calculator() {
   return (
     <main>
       <h1>Subscription Cost Calculator</h1>
-      <h2>Services</h2>
-      <form>
+      <section>
+        <h2>Services</h2>
         {allServices.map((service) => (
-          <div>
-            <h2>{service.name}</h2>
-            <ul>
-              <fieldset>
+          <section>
+            <h3>{service.name}</h3>
+            <fieldset>
+              <ul>
                 <li>
                   <input
                     type={"radio"}
@@ -44,14 +44,16 @@ export default function Calculator() {
                     <label>{plan.name} - ¥{plan.price}</label>
                   </li>
                 ))}
-              </fieldset>
-            </ul>
-          </div>
+              </ul>
+            </fieldset>
+          </section>
         ))}
-      </form>
-      <h2>Sum</h2>
-      <span>Total: ¥{sum(selectedPlans.value)}</span>
-      {selectedPlans.value.size >= 1 && <span>({joinSelectedPlans(selectedPlans.value)})</span>}
+      </section>
+      <section>
+        <h2>Sum</h2>
+        <span>Total: ¥{sum(selectedPlans.value)}</span>
+        {selectedPlans.value.size >= 1 && <span>({joinSelectedPlans(selectedPlans.value)})</span>}
+      </section>
     </main>
   );
 };
