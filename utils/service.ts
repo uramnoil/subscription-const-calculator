@@ -19,6 +19,14 @@ const allServices: Service[] = [
       { name: "Family", price: 1580 },
     ],
   },
+  {
+    name: "YouTube Premium",
+    plans: [
+      { name: "Individual", price: 1280 },
+      { name: "Family", price: 2280 },
+      { name: "Student", price: 780 },
+    ],
+  }
 ];
 
 export type { Plan, Service };
