@@ -17,39 +17,37 @@ export default function Calculator() {
       <h1>Subscription Cost Calculator</h1>
       <section>
         <h2>Services</h2>
-        <form>
-          {allServices.map((service) => (
-            <div>
-              <h2>{service.name}</h2>
-              <fieldset>
-                <ul>
+        {allServices.map((service) => (
+          <div>
+            <h3>{service.name}</h3>
+            <fieldset>
+              <ul>
+                <li>
+                  <input
+                    type={"radio"}
+                    onClick={() => {
+                      handleUnselectPlan(service);
+                    }}
+                    checked={!selectedPlans.value.has(service)}
+                  />
+                  <label>None</label>
+                </li>
+                {service.plans.map((plan) => (
                   <li>
                     <input
                       type={"radio"}
                       onClick={() => {
-                        handleUnselectPlan(service);
+                        handlePlanSelect(service, plan);
                       }}
-                      checked={!selectedPlans.value.has(service)}
+                      checked={selectedPlans.value.get(service) === plan}
                     />
-                    <label>None</label>
+                    <label>{plan.name} - ¥{plan.price}</label>
                   </li>
-                  {service.plans.map((plan) => (
-                    <li>
-                      <input
-                        type={"radio"}
-                        onClick={() => {
-                          handlePlanSelect(service, plan);
-                        }}
-                        checked={selectedPlans.value.get(service) === plan}
-                      />
-                      <label>{plan.name} - ¥{plan.price}</label>
-                    </li>
-                  ))}
-                </ul>
-              </fieldset>
-            </div>
-          ))}
-        </form>
+                ))}
+              </ul>
+            </fieldset>
+          </div>
+        ))}
       </section>
       <section>
         <h2>Sum</h2>
