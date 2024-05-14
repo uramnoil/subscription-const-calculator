@@ -18,7 +18,7 @@ export default function Calculator() {
       <section>
         <h2>Services</h2>
         {allServices.map((service) => (
-          <div>
+          <section>
             <h3>{service.name}</h3>
             <fieldset>
               <ul>
@@ -46,7 +46,7 @@ export default function Calculator() {
                 ))}
               </ul>
             </fieldset>
-          </div>
+          </section>
         ))}
       </section>
       <section>
