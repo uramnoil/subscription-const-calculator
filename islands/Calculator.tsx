@@ -15,43 +15,47 @@ export default function Calculator() {
   return (
     <main>
       <h1>Subscription Cost Calculator</h1>
-      <h2>Services</h2>
-      <form>
-        {allServices.map((service) => (
-          <div>
-            <h2>{service.name}</h2>
-            <fieldset>
-              <ul>
-                <li>
-                  <input
-                    type={"radio"}
-                    onClick={() => {
-                      handleUnselectPlan(service);
-                    }}
-                    checked={!selectedPlans.value.has(service)}
-                  />
-                  <label>None</label>
-                </li>
-                {service.plans.map((plan) => (
+      <section>
+        <h2>Services</h2>
+        <form>
+          {allServices.map((service) => (
+            <div>
+              <h2>{service.name}</h2>
+              <fieldset>
+                <ul>
                   <li>
                     <input
                       type={"radio"}
                       onClick={() => {
-                        handlePlanSelect(service, plan);
+                        handleUnselectPlan(service);
                       }}
-                      checked={selectedPlans.value.get(service) === plan}
+                      checked={!selectedPlans.value.has(service)}
                     />
-                    <label>{plan.name} - ¥{plan.price}</label>
+                    <label>None</label>
                   </li>
-                ))}
-              </ul>
-            </fieldset>
-          </div>
-        ))}
-      </form>
-      <h2>Sum</h2>
-      <span>Total: ¥{sum(selectedPlans.value)}</span>
-      {selectedPlans.value.size >= 1 && <span>({joinSelectedPlans(selectedPlans.value)})</span>}
+                  {service.plans.map((plan) => (
+                    <li>
+                      <input
+                        type={"radio"}
+                        onClick={() => {
+                          handlePlanSelect(service, plan);
+                        }}
+                        checked={selectedPlans.value.get(service) === plan}
+                      />
+                      <label>{plan.name} - ¥{plan.price}</label>
+                    </li>
+                  ))}
+                </ul>
+              </fieldset>
+            </div>
+          ))}
+        </form>
+      </section>
+      <section>
+        <h2>Sum</h2>
+        <span>Total: ¥{sum(selectedPlans.value)}</span>
+        {selectedPlans.value.size >= 1 && <span>({joinSelectedPlans(selectedPlans.value)})</span>}
+      </section>
     </main>
   );
 };
