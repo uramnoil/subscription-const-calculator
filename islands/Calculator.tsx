@@ -4,17 +4,32 @@ import { Head } from "$fresh/src/runtime/head.ts";
 
 
 export default function Calculator() {
-  const selectedPlans = useSignal<Map<Service, Plan>>(new Map());
+  const serviceAndSelectedPlans = useSignal(allServiceAndSelectedPlans);
   const serviceNameQuery = useSignal<string>("");
 
-  const serviceToShow = filterServiceByName(allServices, serviceNameQuery.value)
+  const serviceToShow = filterServiceByName(serviceAndSelectedPlans.value, serviceNameQuery.value)
 
   const handlePlanSelect = (service: Service, plan: Plan) => {
-    selectedPlans.value = new Map(selectedPlans.value.set(service, plan));
+    serviceAndSelectedPlans.value = serviceAndSelectedPlans.value.map((serviceAndSelectedPlan) => {
+      if (serviceAndSelectedPlan.service === service) {
+        return {
+          service,
+          selectedPlan: plan
+        };
+      }
+      return serviceAndSelectedPlan;
+    });
   };
   const handleUnselectPlan = (service: Service) => {
-    selectedPlans.value.delete(service)
-    selectedPlans.value = new Map(selectedPlans.value);
+    serviceAndSelectedPlans.value = serviceAndSelectedPlans.value.map((serviceAndSelectedPlan) => {
+      if (serviceAndSelectedPlan.service === service) {
+        return {
+          service,
+          selectedPlan: null
+        };
+      }
+      return serviceAndSelectedPlan;
+    });
   }
   const handleServiceNameQueryInput = (query: string) => {
     serviceNameQuery.value = query;
@@ -37,29 +52,29 @@ export default function Calculator() {
               handleServiceNameQueryInput((e.target as HTMLInputElement).value);
             }}
           />
-          {serviceToShow.map((service) => (
+          {serviceToShow.map((serviceAndSelectedPlan) => (
             <section>
-              <h3>{service.name}</h3>
+              <h3>{serviceAndSelectedPlan.service.name}</h3>
               <fieldset>
                 <ul>
                   <li>
                     <input
                       type={"radio"}
                       onClick={() => {
-                        handleUnselectPlan(service);
+                        handleUnselectPlan(serviceAndSelectedPlan.service);
                       }}
-                      checked={!selectedPlans.value.has(service)}
+                      checked={serviceAndSelectedPlan.selectedPlan === null}
                     />
                     <label>None</label>
                   </li>
-                  {service.plans.map((plan) => (
+                  {serviceAndSelectedPlan.service.plans.map((plan) => (
                     <li>
                       <input
                         type={"radio"}
                         onClick={() => {
-                          handlePlanSelect(service, plan);
+                          handlePlanSelect(serviceAndSelectedPlan.service, plan);
                         }}
-                        checked={selectedPlans.value.get(service) === plan}
+                        checked={serviceAndSelectedPlan.selectedPlan === plan}
                       />
                       <label>{plan.name} - ¥{plan.price}</label>
                     </li>
@@ -71,9 +86,9 @@ export default function Calculator() {
         </section>
         <section>
           <h2>Sum</h2>
-          <span>Total: ¥{sum(selectedPlans.value)}</span>
-          {selectedPlans.value.size >= 1 && (
-            <span>({joinSelectedPlans(selectedPlans.value)})</span>
+          <span>Total: ¥{sum(serviceAndSelectedPlans.value)}</span>
+          {serviceAndSelectedPlans.value.length >= 1 && (
+            <span>({joinSelectedPlans(serviceAndSelectedPlans.value)})</span>
           )}
         </section>
       </main>
@@ -81,20 +96,38 @@ export default function Calculator() {
   );
 }
 
-function filterServiceByName(services: Service[], query: string): Service[] {
+const allServiceAndSelectedPlans = allServices.map((service) => {
+  return {
+    service,
+    selectedPlan: null
+  } as const as ServiceAndSelectedPlan;
+});
+
+type ServiceAndSelectedPlan = Readonly<{
+  service: Service;
+  selectedPlan?: Plan | null;
+}>;
+
+function filterServiceByName(
+  serviceAndSelectedPlans: ServiceAndSelectedPlan[],
+  query: string
+): ServiceAndSelectedPlan[] {
   const queryLowerCase = query.toLowerCase();
-  return services.filter((service) =>
-    service.name.toLowerCase().includes(queryLowerCase)
+  return serviceAndSelectedPlans.filter((serviceAndSelectedPlan) =>
+    serviceAndSelectedPlan.service.name.toLowerCase().includes(queryLowerCase)
   );
 }
 
-function sum(selectedPlan: Map<Service, Plan>): number {
-  return Array.from(selectedPlan.values())
+function sum(serviceAndSelectedPlans: ServiceAndSelectedPlan[]): number {
+  return serviceAndSelectedPlans
+    .map((serviceAndSelectedPlan) => serviceAndSelectedPlan.selectedPlan)
+    .filter((plan): plan is Plan => plan !== null)
     .reduce((acc, plan) => acc + plan.price, 0);
 }
 
-function joinSelectedPlans(SelectablePlanService: Map<Service, Plan>): string {
-  return Array.from(SelectablePlanService)
-    .map(([service, selectedPlan]) => service.name + " - " + selectedPlan.name)
+function joinSelectedPlans(serviceAndSelectedPlans: ServiceAndSelectedPlan[]): string {
+  return serviceAndSelectedPlans
+    .filter((serviceAndSelectedPlan): serviceAndSelectedPlan is {service: Service, selectedPlan: Plan } => serviceAndSelectedPlan.selectedPlan !== null)
+    .map(({service, selectedPlan}) => service.name + " - " + selectedPlan.name)
     .join(", ");
 }
