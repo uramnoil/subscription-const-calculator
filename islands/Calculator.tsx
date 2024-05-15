@@ -39,6 +39,7 @@ export default function Calculator() {
     <div>
       <Head>
         <title>SCC - Subscription Cost Calculator</title>
+        <meta name="description" content="Sum up the fees for all the subscriptions you have. Money is important!" />
       </Head>
       <main>
         <h1>Subscription Cost Calculator</h1>
