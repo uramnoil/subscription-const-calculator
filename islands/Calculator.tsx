@@ -7,7 +7,7 @@ export default function Calculator() {
   const serviceAndSelectablePlans = useSignal(allServiceAndSelectablePlans);
   const serviceNameQuery = useSignal<string>("");
   const serviceAndSelectedPlans = filterServiceAndSelectedPlans(serviceAndSelectablePlans.value);
-  const serviceToShow = filterServiceByName(serviceAndSelectablePlans.value, serviceNameQuery.value)
+  const servicesToShow = filterServiceByName(serviceAndSelectablePlans.value, serviceNameQuery.value)
 
   const handlePlanSelect = (service: Service, plan: Plan) => {
     serviceAndSelectablePlans.value = serviceAndSelectablePlans.value.map((serviceAndSelectedPlan) => {
@@ -52,7 +52,7 @@ export default function Calculator() {
               handleServiceNameQueryInput((e.target as HTMLInputElement).value);
             }}
           />
-          {serviceToShow.map((serviceAndSelectedPlan) => (
+          {servicesToShow.map((serviceAndSelectedPlan) => (
             <section>
               <h3>{serviceAndSelectedPlan.service.name}</h3>
               <fieldset>
