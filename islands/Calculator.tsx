@@ -4,13 +4,13 @@ import { Head } from "$fresh/src/runtime/head.ts";
 
 
 export default function Calculator() {
-  const serviceAndSelectedPlans = useSignal(allServiceAndSelectedPlans);
+  const serviceAndSelectablePlans = useSignal(allServiceAndSelectablePlans);
   const serviceNameQuery = useSignal<string>("");
-
-  const serviceToShow = filterServiceByName(serviceAndSelectedPlans.value, serviceNameQuery.value)
+  const serviceAndSelectedPlans = filterServiceAndSelectedPlans(serviceAndSelectablePlans.value);
+  const serviceToShow = filterServiceByName(serviceAndSelectablePlans.value, serviceNameQuery.value)
 
   const handlePlanSelect = (service: Service, plan: Plan) => {
-    serviceAndSelectedPlans.value = serviceAndSelectedPlans.value.map((serviceAndSelectedPlan) => {
+    serviceAndSelectablePlans.value = serviceAndSelectablePlans.value.map((serviceAndSelectedPlan) => {
       if (serviceAndSelectedPlan.service === service) {
         return {
           service,
@@ -21,7 +21,7 @@ export default function Calculator() {
     });
   };
   const handleUnselectPlan = (service: Service) => {
-    serviceAndSelectedPlans.value = serviceAndSelectedPlans.value.map((serviceAndSelectedPlan) => {
+    serviceAndSelectablePlans.value = serviceAndSelectablePlans.value.map((serviceAndSelectedPlan) => {
       if (serviceAndSelectedPlan.service === service) {
         return {
           service,
@@ -86,9 +86,9 @@ export default function Calculator() {
         </section>
         <section>
           <h2>Sum</h2>
-          <span>Total: ¥{sum(serviceAndSelectedPlans.value)}</span>
-          {serviceAndSelectedPlans.value.length >= 1 && (
-            <span>({joinSelectedPlans(serviceAndSelectedPlans.value)})</span>
+          <span>Total: ¥{sum(serviceAndSelectedPlans)}</span>
+          {serviceAndSelectedPlans.length >= 1 && (
+            <span>({joinSelectedPlans(serviceAndSelectedPlans)})</span>
           )}
         </section>
       </main>
@@ -96,38 +96,44 @@ export default function Calculator() {
   );
 }
 
-const allServiceAndSelectedPlans = allServices.map((service) => {
+const allServiceAndSelectablePlans = allServices.map((service) => {
   return {
     service,
     selectedPlan: null
-  } as const as ServiceAndSelectedPlan;
+  } as const as ServiceAndSelectablePlan;
 });
 
-type ServiceAndSelectedPlan = Readonly<{
+type ServiceAndSelectablePlan = Readonly<{
   service: Service;
   selectedPlan?: Plan | null;
 }>;
 
+type ServiceAndSelectedPlan = Readonly<{
+  service: Service;
+  selectedPlan: Plan;
+}>;
+
 function filterServiceByName(
-  serviceAndSelectedPlans: ServiceAndSelectedPlan[],
+  serviceAndSelectedPlans: ServiceAndSelectablePlan[],
   query: string
-): ServiceAndSelectedPlan[] {
+): ServiceAndSelectablePlan[] {
   const queryLowerCase = query.toLowerCase();
   return serviceAndSelectedPlans.filter((serviceAndSelectedPlan) =>
     serviceAndSelectedPlan.service.name.toLowerCase().includes(queryLowerCase)
   );
 }
 
-function sum(serviceAndSelectedPlans: ServiceAndSelectedPlan[]): number {
+function filterServiceAndSelectedPlans(serviceAndSelectedPlans: ServiceAndSelectablePlan[]): ServiceAndSelectedPlan[] {
   return serviceAndSelectedPlans
-    .map((serviceAndSelectedPlan) => serviceAndSelectedPlan.selectedPlan)
-    .filter((plan): plan is Plan => plan !== null)
-    .reduce((acc, plan) => acc + plan.price, 0);
+    .filter((serviceAndSelectedPlan): serviceAndSelectedPlan is ServiceAndSelectablePlan & {selectedPlan: Plan} => serviceAndSelectedPlan.selectedPlan !== null)
+}
+
+function sum(serviceAndSelectedPlan: ServiceAndSelectedPlan[]): number {
+  return serviceAndSelectedPlan.reduce((acc, {selectedPlan}) => acc + selectedPlan.price, 0);
 }
 
 function joinSelectedPlans(serviceAndSelectedPlans: ServiceAndSelectedPlan[]): string {
   return serviceAndSelectedPlans
-    .filter((serviceAndSelectedPlan): serviceAndSelectedPlan is {service: Service, selectedPlan: Plan } => serviceAndSelectedPlan.selectedPlan !== null)
     .map(({service, selectedPlan}) => service.name + " - " + selectedPlan.name)
     .join(", ");
 }
