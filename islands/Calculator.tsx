@@ -4,6 +4,10 @@ import { Plan, Service, allServices } from "../utils/service.ts";
 
 export default function Calculator() {
   const selectedPlans = useSignal<Map<Service, Plan>>(new Map());
+  const serviceNameQuery = useSignal<string>("");
+
+  const serviceToShow = filterServiceByName(allServices, serviceNameQuery.value)
+
   const handlePlanSelect = (service: Service, plan: Plan) => {
     selectedPlans.value = new Map(selectedPlans.value.set(service, plan));
   };
@@ -11,13 +15,24 @@ export default function Calculator() {
     selectedPlans.value.delete(service)
     selectedPlans.value = new Map(selectedPlans.value);
   }
+  const handleServiceNameQueryInput = (query: string) => {
+    serviceNameQuery.value = query;
+  }
 
   return (
     <main>
       <h1>Subscription Cost Calculator</h1>
       <section>
         <h2>Services</h2>
-        {allServices.map((service) => (
+        <input
+          type="text"
+          placeholder="filter searvice name"
+          value={serviceNameQuery.value}
+          onInput={(e) => {
+            handleServiceNameQueryInput((e.target as HTMLInputElement).value);
+          }}
+        />
+        {serviceToShow.map((service) => (
           <section>
             <h3>{service.name}</h3>
             <fieldset>
@@ -57,6 +72,11 @@ export default function Calculator() {
     </main>
   );
 };
+
+function filterServiceByName(services: Service[], query: string): Service[] {
+  const queryLowerCase = query.toLowerCase();
+  return services.filter((service) => service.name.toLowerCase().includes(queryLowerCase));
+}
 
 function sum(selectedPlan: Map<Service, Plan>): number {
   return Array.from(selectedPlan.values())
