@@ -1,5 +1,6 @@
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import { Plan, Service, allServices } from "../utils/service.ts";
+import { Head } from "$fresh/src/runtime/head.ts";
 
 
 export default function Calculator() {
@@ -21,6 +22,9 @@ export default function Calculator() {
 
   return (
     <div>
+      <Head>
+        <title>SCC - Subscription Cost Calculator</title>
+      </Head>
       <main>
         <h1>Subscription Cost Calculator</h1>
         <section>
