@@ -26,7 +26,7 @@ const allServices: Service[] = [
       { name: "Family", price: 2280 },
       { name: "Student", price: 780 },
     ],
-  }
+  },
 ];
 
 export type { Plan, Service };

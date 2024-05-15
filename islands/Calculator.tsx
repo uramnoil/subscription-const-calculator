@@ -1,5 +1,6 @@
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import { Plan, Service, allServices } from "../utils/service.ts";
+import { Head } from "$fresh/src/runtime/head.ts";
 
 
 export default function Calculator() {
@@ -20,62 +21,71 @@ export default function Calculator() {
   }
 
   return (
-    <main>
-      <h1>Subscription Cost Calculator</h1>
-      <section>
-        <h2>Services</h2>
-        <input
-          type="text"
-          placeholder="filter searvice name"
-          value={serviceNameQuery.value}
-          onInput={(e) => {
-            handleServiceNameQueryInput((e.target as HTMLInputElement).value);
-          }}
-        />
-        {serviceToShow.map((service) => (
-          <section>
-            <h3>{service.name}</h3>
-            <fieldset>
-              <ul>
-                <li>
-                  <input
-                    type={"radio"}
-                    onClick={() => {
-                      handleUnselectPlan(service);
-                    }}
-                    checked={!selectedPlans.value.has(service)}
-                  />
-                  <label>None</label>
-                </li>
-                {service.plans.map((plan) => (
+    <div>
+      <Head>
+        <title>SCC - Subscription Cost Calculator</title>
+      </Head>
+      <main>
+        <h1>Subscription Cost Calculator</h1>
+        <section>
+          <h2>Services</h2>
+          <input
+            type="text"
+            placeholder="filter searvice name"
+            value={serviceNameQuery.value}
+            onInput={(e) => {
+              handleServiceNameQueryInput((e.target as HTMLInputElement).value);
+            }}
+          />
+          {serviceToShow.map((service) => (
+            <section>
+              <h3>{service.name}</h3>
+              <fieldset>
+                <ul>
                   <li>
                     <input
                       type={"radio"}
                       onClick={() => {
-                        handlePlanSelect(service, plan);
+                        handleUnselectPlan(service);
                       }}
-                      checked={selectedPlans.value.get(service) === plan}
+                      checked={!selectedPlans.value.has(service)}
                     />
-                    <label>{plan.name} - ¥{plan.price}</label>
+                    <label>None</label>
                   </li>
-                ))}
-              </ul>
-            </fieldset>
-          </section>
-        ))}
-      </section>
-      <section>
-        <h2>Sum</h2>
-        <span>Total: ¥{sum(selectedPlans.value)}</span>
-        {selectedPlans.value.size >= 1 && <span>({joinSelectedPlans(selectedPlans.value)})</span>}
-      </section>
-    </main>
+                  {service.plans.map((plan) => (
+                    <li>
+                      <input
+                        type={"radio"}
+                        onClick={() => {
+                          handlePlanSelect(service, plan);
+                        }}
+                        checked={selectedPlans.value.get(service) === plan}
+                      />
+                      <label>{plan.name} - ¥{plan.price}</label>
+                    </li>
+                  ))}
+                </ul>
+              </fieldset>
+            </section>
+          ))}
+        </section>
+        <section>
+          <h2>Sum</h2>
+          <span>Total: ¥{sum(selectedPlans.value)}</span>
+          {selectedPlans.value.size >= 1 && (
+            <span>({joinSelectedPlans(selectedPlans.value)})</span>
+          )}
+        </section>
+      </main>
+    </div>
   );
-};
+}
 
 function filterServiceByName(services: Service[], query: string): Service[] {
   const queryLowerCase = query.toLowerCase();
-  return services.filter((service) => service.name.toLowerCase().includes(queryLowerCase));
+  return services.filter((service) =>
+    service.name.toLowerCase().includes(queryLowerCase)
+  );
 }
 
 function sum(selectedPlan: Map<Service, Plan>): number {
