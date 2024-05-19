@@ -1,5 +1,6 @@
 interface Service {
   name: string;
+  tags: { [key: string]: string };
   plans: Plan[];
 }
 
@@ -11,6 +12,9 @@ interface Plan {
 const allServices: Service[] = [
   {
     name: "Spotify",
+    tags: {
+      type: "music"
+    },
     plans: [
       { name: "Free", price: 0 },
       { name: "Standard", price: 980 },
@@ -21,6 +25,9 @@ const allServices: Service[] = [
   },
   {
     name: "YouTube Premium",
+    tags: {
+      type: "video"
+    },
     plans: [
       { name: "Individual", price: 1280 },
       { name: "Family", price: 2280 },

@@ -6,8 +6,9 @@ import { Head } from "$fresh/src/runtime/head.ts";
 export default function Calculator() {
   const serviceAndSelectablePlans = useSignal(allServiceAndSelectablePlans);
   const serviceNameQuery = useSignal<string>("");
-  const serviceAndSelectedPlans = filterServiceAndSelectedPlans(serviceAndSelectablePlans.value);
-  const servicesToShow = filterServiceByName(serviceAndSelectablePlans.value, serviceNameQuery.value)
+  const servicesToShow = filterServiceByName(serviceAndSelectablePlans.value, serviceNameQuery.value);
+  const servicesToShowOrderedByTag = orderedByTag(servicesToShow, "type");
+  const serviceAndSelectedPlans = filterServiceAndSelectedPlans(serviceAndSelectablePlans.value)
 
   const handlePlanSelect = (service: Service, plan: Plan) => {
     serviceAndSelectablePlans.value = serviceAndSelectablePlans.value.map((serviceAndSelectedPlan) => {
@@ -53,36 +54,45 @@ export default function Calculator() {
               handleServiceNameQueryInput((e.target as HTMLInputElement).value);
             }}
           />
-          {servicesToShow.map((serviceAndSelectedPlan) => (
-            <section>
-              <h3>{serviceAndSelectedPlan.service.name}</h3>
-              <fieldset>
-                <ul>
-                  <li>
-                    <input
-                      type={"radio"}
-                      onClick={() => {
-                        handleUnselectPlan(serviceAndSelectedPlan.service);
-                      }}
-                      checked={serviceAndSelectedPlan.selectedPlan === null}
-                    />
-                    <label>None</label>
-                  </li>
-                  {serviceAndSelectedPlan.service.plans.map((plan) => (
-                    <li>
-                      <input
-                        type={"radio"}
-                        onClick={() => {
-                          handlePlanSelect(serviceAndSelectedPlan.service, plan);
-                        }}
-                        checked={serviceAndSelectedPlan.selectedPlan === plan}
-                      />
-                      <label>{plan.name} - ¥{plan.price}</label>
-                    </li>
-                  ))}
-                </ul>
-              </fieldset>
-            </section>
+          {Array
+            .from(servicesToShowOrderedByTag.entries())
+            .map(([tag, serviceAndSelectablePlans]) => (
+              <section>
+                <h3>{tag}</h3>
+                <section>
+                  {
+                    serviceAndSelectablePlans.map(({service, selectedPlan}) => <>
+                      <h4>{service.name}</h4>
+                      <fieldset>
+                        <ul>
+                          <li>
+                            <input
+                              type={"radio"}
+                              onClick={() => {
+                                handleUnselectPlan(service);
+                              }}
+                              checked={selectedPlan === null}
+                            />
+                            <label>None</label>
+                          </li>
+                          {service.plans.map((plan) => (
+                            <li>
+                              <input
+                                type={"radio"}
+                                onClick={() => {
+                                  handlePlanSelect(service, plan);
+                                }}
+                                checked={selectedPlan === plan}
+                              />
+                              <label>{plan.name} - ¥{plan.price}</label>
+                            </li>
+                          ))}
+                        </ul>
+                      </fieldset>
+                    </>)
+                  }
+                </section>
+              </section>
           ))}
         </section>
         <section>
@@ -104,15 +114,35 @@ const allServiceAndSelectablePlans = allServices.map((service) => {
   } as const as ServiceAndSelectablePlan;
 });
 
+function orderedByTag(services: ServiceAndSelectablePlan[], tag: string): Map<string, ServiceAndSelectablePlan[]> {
+  // ServiceAndSelectablePaln[]をサービスが持っているタグでグループ化する
+  const groupedByTag = new Map<string, ServiceAndSelectablePlan[]>();
+  for (const serviceAndSelectablePlan of services) {
+    let tagValue = serviceAndSelectablePlan.service.tags[tag];
+    if (tagValue === undefined) {
+      tagValue = "unknown";
+    }
+    const group = groupedByTag.get(tagValue) ?? [];
+    groupedByTag.set(tagValue, group.concat(serviceAndSelectablePlan));
+  }
+  return groupedByTag;
+}
+
 type ServiceAndSelectablePlan = Readonly<{
   service: Service;
   selectedPlan?: Plan | null;
 }>;
 
-type ServiceAndSelectedPlan = Readonly<{
-  service: Service;
-  selectedPlan: Plan;
-}>;
+type ServiceAndSelectedPlan = Readonly<
+  ServiceAndSelectablePlan
+    & {
+      selectedPlan: Plan;
+    }
+>;
+
+type GroupedServiceAndSelectablePlans = Map<string, ServiceAndSelectablePlan[]>;
+
+type GroupedServiceAndSelectedPlans = Map<string, ServiceAndSelectedPlan[]>;
 
 function filterServiceByName(
   serviceAndSelectedPlans: ServiceAndSelectablePlan[],
