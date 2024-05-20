@@ -1,16 +1,20 @@
 import { useSignal } from "https://esm.sh/v135/@preact/signals@1.2.2/X-ZS8q/dist/signals.js";
 import { Plan, Service, allServices } from "../utils/service.ts";
 import { Head } from "$fresh/src/runtime/head.ts";
+import { ServiceAndSelectablePlan, filterServiceAndSelectedPlans } from "../components/caluculator/types.ts";
+import { Total } from "../components/caluculator/Total.tsx";
+import { ServicesOrderedByTag } from "../components/caluculator/ServicesOrderedByTag.tsx";
+import { useNameQuery } from "../hooks/useNameQuery.tsx";
 
 
 export default function Calculator() {
   const serviceAndSelectablePlans = useSignal(allServiceAndSelectablePlans);
-  const serviceNameQuery = useSignal<string>("");
-  const servicesToShow = filterServiceByName(serviceAndSelectablePlans.value, serviceNameQuery.value);
+  const [serviceNameQuery, ServiceNameQueryInput] = useNameQuery();
+  const servicesToShow = filterServiceByName(serviceAndSelectablePlans.value, serviceNameQuery);
   const servicesToShowOrderedByTag = orderedByTag(servicesToShow, "type");
   const serviceAndSelectedPlans = filterServiceAndSelectedPlans(serviceAndSelectablePlans.value)
 
-  const handlePlanSelect = (service: Service, plan: Plan) => {
+  const handlePlanSelect = (service: Service, plan: Plan | null) => {
     serviceAndSelectablePlans.value = serviceAndSelectablePlans.value.map((serviceAndSelectedPlan) => {
       if (serviceAndSelectedPlan.service === service) {
         return {
@@ -21,20 +25,6 @@ export default function Calculator() {
       return serviceAndSelectedPlan;
     });
   };
-  const handleUnselectPlan = (service: Service) => {
-    serviceAndSelectablePlans.value = serviceAndSelectablePlans.value.map((serviceAndSelectedPlan) => {
-      if (serviceAndSelectedPlan.service === service) {
-        return {
-          service,
-          selectedPlan: null
-        };
-      }
-      return serviceAndSelectedPlan;
-    });
-  }
-  const handleServiceNameQueryInput = (query: string) => {
-    serviceNameQuery.value = query;
-  }
 
   return (
     <div>
@@ -44,63 +34,18 @@ export default function Calculator() {
       </Head>
       <main>
         <h1>Subscription Cost Calculator</h1>
+        { ServiceNameQueryInput }
         <section>
           <h2>Services</h2>
-          <input
-            type="text"
-            placeholder="filter searvice name"
-            value={serviceNameQuery.value}
-            onInput={(e) => {
-              handleServiceNameQueryInput((e.target as HTMLInputElement).value);
-            }}
-          />
-          {Array
-            .from(servicesToShowOrderedByTag.entries())
-            .map(([tag, serviceAndSelectablePlans]) => (
-              <section>
-                <h3>{tag}</h3>
-                <section>
-                  {
-                    serviceAndSelectablePlans.map(({service, selectedPlan}) => <>
-                      <h4>{service.name}</h4>
-                      <fieldset>
-                        <ul>
-                          <li>
-                            <input
-                              type={"radio"}
-                              onClick={() => {
-                                handleUnselectPlan(service);
-                              }}
-                              checked={selectedPlan === null}
-                            />
-                            <label>None</label>
-                          </li>
-                          {service.plans.map((plan) => (
-                            <li>
-                              <input
-                                type={"radio"}
-                                onClick={() => {
-                                  handlePlanSelect(service, plan);
-                                }}
-                                checked={selectedPlan === plan}
-                              />
-                              <label>{plan.name} - ¥{plan.price}</label>
-                            </li>
-                          ))}
-                        </ul>
-                      </fieldset>
-                    </>)
-                  }
-                </section>
-              </section>
-          ))}
+          <section>
+            <ServicesOrderedByTag
+              servicesToShowOrderedByTag={servicesToShowOrderedByTag}
+              handlePlanSelect={handlePlanSelect}
+            />
+          </section>
         </section>
         <section>
-          <h2>Sum</h2>
-          <span>Total: ¥{sum(serviceAndSelectedPlans)}</span>
-          {serviceAndSelectedPlans.length >= 1 && (
-            <span>({joinSelectedPlans(serviceAndSelectedPlans)})</span>
-          )}
+          <Total serviceAndSelectedPlans={serviceAndSelectedPlans} />
         </section>
       </main>
     </div>
@@ -128,22 +73,6 @@ function orderedByTag(services: ServiceAndSelectablePlan[], tag: string): Map<st
   return groupedByTag;
 }
 
-type ServiceAndSelectablePlan = Readonly<{
-  service: Service;
-  selectedPlan?: Plan | null;
-}>;
-
-type ServiceAndSelectedPlan = Readonly<
-  ServiceAndSelectablePlan
-    & {
-      selectedPlan: Plan;
-    }
->;
-
-type GroupedServiceAndSelectablePlans = Map<string, ServiceAndSelectablePlan[]>;
-
-type GroupedServiceAndSelectedPlans = Map<string, ServiceAndSelectedPlan[]>;
-
 function filterServiceByName(
   serviceAndSelectedPlans: ServiceAndSelectablePlan[],
   query: string
@@ -152,19 +81,4 @@ function filterServiceByName(
   return serviceAndSelectedPlans.filter((serviceAndSelectedPlan) =>
     serviceAndSelectedPlan.service.name.toLowerCase().includes(queryLowerCase)
   );
-}
-
-function filterServiceAndSelectedPlans(serviceAndSelectedPlans: ServiceAndSelectablePlan[]): ServiceAndSelectedPlan[] {
-  return serviceAndSelectedPlans
-    .filter((serviceAndSelectedPlan): serviceAndSelectedPlan is ServiceAndSelectablePlan & {selectedPlan: Plan} => serviceAndSelectedPlan.selectedPlan !== null)
-}
-
-function sum(serviceAndSelectedPlan: ServiceAndSelectedPlan[]): number {
-  return serviceAndSelectedPlan.reduce((acc, {selectedPlan}) => acc + selectedPlan.price, 0);
-}
-
-function joinSelectedPlans(serviceAndSelectedPlans: ServiceAndSelectedPlan[]): string {
-  return serviceAndSelectedPlans
-    .map(({service, selectedPlan}) => service.name + " - " + selectedPlan.name)
-    .join(", ");
 }
