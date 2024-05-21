@@ -29,7 +29,8 @@
     "tailwindcss": "npm:tailwindcss@3.4.1",
     "tailwindcss/": "npm:/tailwindcss@3.4.1/",
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
-    "$std/": "https://deno.land/std@0.216.0/"
+    "$std/": "https://deno.land/std@0.216.0/,",
+    "@nextui-org": "https://cdn.skypack.dev/@nextui-org/react"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
